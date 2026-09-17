@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Q&A Assistant</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      line-height: 1.5;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: #0f172a;
+    }
+
+    .section {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: #334155;
+    }
+
+    input[type="file"] {
+      display: block;
+      width: 100%;
+      font-size: 0.875rem;
+      color: #475569;
+      margin-bottom: 0.75rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 0.625rem 0.75rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      color: #0f172a;
+      resize: vertical;
+      margin-bottom: 0.75rem;
+    }
+
+    textarea:focus, input[type="file"]:focus {
+      outline: 2px solid #0f172a;
+      outline-offset: 1px;
+    }
+
+    button {
+      background-color: #0f172a;
+      color: #ffffff;
+      border: none;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #1e293b;
+    }
+
+    button:disabled {
+      background-color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .status {
+      font-size: 0.875rem;
+      margin-top: 0.75rem;
+      color: #475569;
+    }
+
+    .status.error {
+      color: #b91c1c;
+    }
+
+    .status.success {
+      color: #15803d;
+    }
+
+    .result-box {
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .answer-text {
+      background: #f1f5f9;
+      padding: 1rem;
+      border-radius: 4px;
+      font-size: 0.9375rem;
+      margin-top: 0.5rem;
+      color: #0f172a;
+      line-height: 1.6;
+    }
+
+    .answer-text p {
+      margin-bottom: 0.75rem;
+    }
+
+    .answer-text p:last-child {
+      margin-bottom: 0;
+    }
+
+    .answer-text strong {
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .answer-text pre {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      overflow-x: auto;
+      margin: 0.75rem 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.875rem;
+      line-height: 1.45;
+    }
+
+    .answer-text code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.875rem;
+    }
+
+    .answer-text :not(pre) > code {
+      background: #e2e8f0;
+      color: #0f172a;
+      padding: 0.125rem 0.375rem;
+      border-radius: 3px;
+    }
+
+    .answer-text ul, .answer-text ol {
+      margin: 0.5rem 0 0.75rem 1.25rem;
+    }
+
+    .answer-text li {
+      margin-bottom: 0.25rem;
+    }
+
+    details {
+      margin-top: 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 0.5rem 0.75rem;
+      background: #fafafa;
+    }
+
+    summary {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: #475569;
+      cursor: pointer;
+    }
+
+    .source-item {
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      font-size: 0.8125rem;
+      color: #334155;
+      white-space: pre-wrap;
+    }
+
+    .source-item:not(:last-child) {
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Document Q&A Assistant</h1>
+
+    <div class="section">
+      <label for="file-input">1. Upload PDF document</label>
+      <input type="file" id="file-input" accept=".pdf">
+      <button id="upload-btn">Upload Document</button>
+      <div id="upload-status" class="status"></div>
+    </div>
+
+    <div class="section">
+      <label for="question-input">2. Ask a question</label>
+      <textarea id="question-input" placeholder="Type your question about the uploaded document..."></textarea>
+      <button id="ask-btn" disabled>Submit Question</button>
+      <div id="ask-status" class="status"></div>
+
+      <div id="result-box" class="result-box">
+        <label>Answer</label>
+        <div id="answer-text" class="answer-text"></div>
+
+        <details id="sources-details">
+          <summary>Retrieved sources (<span id="source-count">0</span>)</summary>
+          <div id="sources-list"></div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    const fileInput = document.getElementById("file-input");
+    const uploadBtn = document.getElementById("upload-btn");
+    const uploadStatus = document.getElementById("upload-status");
+
+    const questionInput = document.getElementById("question-input");
+    const askBtn = document.getElementById("ask-btn");
+    const askStatus = document.getElementById("ask-status");
+
+    const resultBox = document.getElementById("result-box");
+    const answerText = document.getElementById("answer-text");
+    const sourcesDetails = document.getElementById("sources-details");
+    const sourceCount = document.getElementById("source-count");
+    const sourcesList = document.getElementById("sources-list");
+
+    let isDocumentUploaded = false;
+
+    uploadBtn.addEventListener("click", async () => {
+      const file = fileInput.files[0];
+      if (!file) {
+        uploadStatus.className = "status error";
+        uploadStatus.textContent = "Please select a PDF file.";
+        return;
+      }
+
+      uploadBtn.disabled = true;
+      uploadStatus.className = "status";
+      uploadStatus.textContent = "Extracting text and generating embeddings...";
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response = await fetch("/upload", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.detail || "Upload failed.");
+        }
+
+        uploadStatus.className = "status success";
+        uploadStatus.textContent = data.message;
+        isDocumentUploaded = true;
+        askBtn.disabled = false;
+      } catch (err) {
+        uploadStatus.className = "status error";
+        uploadStatus.textContent = err.message;
+      } finally {
+        uploadBtn.disabled = false;
+      }
+    });
+
+    askBtn.addEventListener("click", async () => {
+      const question = questionInput.value.trim();
+      if (!question) {
+        askStatus.className = "status error";
+        askStatus.textContent = "Please enter a question.";
+        return;
+      }
+
+      askBtn.disabled = true;
+      askStatus.className = "status";
+      askStatus.textContent = "Searching document and generating answer...";
+      resultBox.style.display = "none";
+
+      try {
+        const response = await fetch("/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.detail || "Failed to retrieve answer.");
+        }
+
+        askStatus.textContent = "";
+        if (window.marked && typeof marked.parse === "function") {
+          answerText.innerHTML = marked.parse(data.answer);
+        } else {
+          answerText.textContent = data.answer;
+        }
+
+        sourcesList.innerHTML = "";
+        const sources = data.sources || [];
+        sourceCount.textContent = sources.length;
+
+        sources.forEach((src, idx) => {
+          const item = document.createElement("div");
+          item.className = "source-item";
+          item.textContent = `[Chunk ${idx + 1}]\n${src}`;
+          sourcesList.appendChild(item);
+        });
+
+        resultBox.style.display = "block";
+      } catch (err) {
+        askStatus.className = "status error";
+        askStatus.textContent = err.message;
+      } finally {
+        askBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
